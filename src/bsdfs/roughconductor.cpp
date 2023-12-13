@@ -374,6 +374,11 @@ public:
         return (F * result) & active;
     }
 
+    Spectrum eval_diffuse(const BSDFContext& ctx, const SurfaceInteraction3f& si,
+        const Vector3f& wo, Mask active) const override {
+        return 0.f;
+    }
+
     Float pdf(const BSDFContext &ctx, const SurfaceInteraction3f &si,
               const Vector3f &wo, Mask active) const override {
         MI_MASKED_FUNCTION(ProfilerPhase::BSDFEvaluate, active);

@@ -348,6 +348,16 @@ public:
                           const Vector3f &wo,
                           Mask active = true) const = 0;
 
+
+    /**
+    * \brief Evaluate the diffuse component of the BSDF f(wi, wo) 
+    */
+    virtual Spectrum eval_diffuse(const BSDFContext &ctx,
+        				  const SurfaceInteraction3f &si,
+        				  const Vector3f &wo,
+        				  Mask active = true) const;
+
+
     /**
      * \brief Compute the probability per unit solid angle of sampling a
      * given direction
@@ -662,6 +672,7 @@ NAMESPACE_END(mitsuba)
 DRJIT_VCALL_TEMPLATE_BEGIN(mitsuba::BSDF)
     DRJIT_VCALL_METHOD(sample)
     DRJIT_VCALL_METHOD(eval)
+    DRJIT_VCALL_METHOD(eval_diffuse)
     DRJIT_VCALL_METHOD(eval_null_transmission)
     DRJIT_VCALL_METHOD(pdf)
     DRJIT_VCALL_METHOD(eval_pdf)
