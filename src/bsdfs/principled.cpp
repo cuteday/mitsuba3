@@ -709,6 +709,129 @@ public:
         return depolarizer<Spectrum>(value) & active;
     }
 
+    Spectrum eval_diffuse(const BSDFContext& ctx, const SurfaceInteraction3f& si,
+        const Vector3f& wo, Mask active) const override {
+        Float cos_theta_i = Frame3f::cos_theta(si.wi);
+        // Ignore perfectly grazing configurations
+        active &= dr::neq(cos_theta_i, 0.0f);
+
+        if (unlikely(dr::none_or<false>(active)))
+            return 0.0f;
+
+        // Store the weights.
+        Float roughness = m_roughness->eval_1(si, active),
+              flatness = m_has_flatness ? m_flatness->eval_1(si, active) : 0.0f,
+              spec_trans = m_has_spec_trans ? m_spec_trans->eval_1(si, active) : 0.0f,
+              metallic = m_has_metallic ? m_metallic->eval_1(si, active) : 0.0f,
+              sheen = m_has_sheen ? m_sheen->eval_1(si, active) : 0.0f;
+        UnpolarizedSpectrum base_color = m_base_color->eval(si, active);
+
+        // Weights for BRDF and BSDF major lobes.
+        Float brdf = (1.0f - metallic) * (1.0f - spec_trans);
+
+        Float cos_theta_o = Frame3f::cos_theta(wo);
+
+        // Reflection and refraction masks.
+        Mask reflect = cos_theta_i * cos_theta_o > 0.0f;
+
+        // Masks for the side of the incident ray (wi.z<0)
+        Mask front_side = cos_theta_i > 0.0f;
+        Float inv_eta   = dr::rcp(m_eta);
+
+        // Eta value w.r.t. ray instead of the object.
+        Float eta_path     = dr::select(front_side, m_eta, inv_eta);
+
+        // Halfway vector
+        Vector3f wh =
+                dr::normalize(si.wi + wo * dr::select(reflect, 1.0f, eta_path));
+
+        // Make sure that the halfway vector points outwards the object
+        wh = dr::mulsign(wh, Frame3f::cos_theta(wh));
+
+        // Dielectric Fresnel
+        auto [F_spec_dielectric, cos_theta_t, eta_it, eta_ti] =
+                fresnel(dr::dot(si.wi, wh), m_eta);
+
+        // Masks for evaluating the lobes.
+        // Diffuse, retro and fake subsurface mask
+        Mask diffuse_active = active && (brdf > 0.0f) && reflect && front_side;
+
+        // Sheen mask
+        Mask sheen_active = m_has_sheen && active && (sheen > 0.0f) &&
+                reflect && (1.0f - metallic > 0.0f) && front_side;
+
+        // Initialize the final BSDF value.
+        UnpolarizedSpectrum value(0.0f);
+
+        // Evaluation of diffuse, retro reflection, fake subsurface and
+        // sheen.
+        if (dr::any_or<true>(diffuse_active)) {
+            Float Fo = schlick_weight(dr::abs(cos_theta_o)),
+            Fi = schlick_weight(dr::abs(cos_theta_i));
+
+            // Diffuse
+            Float f_diff = (1.0f - 0.5f * Fi) * (1.0f - 0.5f * Fo);
+
+            Float cos_theta_d = dr::dot(wh, wo);
+            Float Rr          = 2.0f * roughness * dr::sqr(cos_theta_d);
+
+            // Retro reflection
+            Float f_retro = Rr * (Fo + Fi + Fo * Fi * (Rr - 1.0f));
+
+            if (m_has_flatness) {
+                /* Fake subsurface implementation based on Hanrahan Krueger
+                   Fss90 used to "flatten" retro reflection based on
+                   roughness.*/
+                Float Fss90 = Rr / 2.0f;
+                Float Fss =
+                        dr::lerp(1.0f, Fss90, Fo) * dr::lerp(1.0f, Fss90, Fi);
+
+                Float f_ss = 1.25f * (Fss * (1.0f / (dr::abs(cos_theta_o) +
+                        dr::abs(cos_theta_i)) -
+                                0.5f) +
+                                        0.5f);
+
+                // Adding diffuse, retro and fake subsurface evaluation.
+                dr::masked(value, diffuse_active) +=
+                        brdf * dr::abs(cos_theta_o) * base_color *
+                        dr::InvPi<Float> *
+                        (dr::lerp(f_diff + f_retro, f_ss, flatness));
+            } else {
+                // Adding diffuse, retro evaluation. (no fake ss.)
+                dr::masked(value, diffuse_active) +=
+                        brdf * dr::abs(cos_theta_o) * base_color *
+                        dr::InvPi<Float> * (f_diff + f_retro);
+            }
+            // Sheen evaluation
+            if (m_has_sheen && dr::any_or<true>(sheen_active)) {
+                Float Fd = schlick_weight(dr::abs(cos_theta_d));
+
+                // Tint the sheen evaluation towards the base color.
+                if (m_has_sheen_tint) {
+                    Float sheen_tint = m_sheen_tint->eval_1(si, active);
+
+                    // Luminance evaluation
+                    Float lum = mitsuba::luminance(base_color, si.wavelengths);
+
+                    // Normalize color with luminance and tint the result.
+                    UnpolarizedSpectrum c_tint =
+                            dr::select(lum > 0.0f, base_color / lum, 1.0f);
+                    UnpolarizedSpectrum c_sheen = dr::lerp(1.0f, c_tint, sheen_tint);
+
+                    // Adding sheen evaluation with tint.
+                    dr::masked(value, sheen_active) +=
+                            sheen * (1.0f - metallic) * Fd * c_sheen *
+                            dr::abs(cos_theta_o);
+                } else {
+                    // Adding sheen evaluation without tint.
+                    dr::masked(value, sheen_active) +=
+                            sheen * (1.0f - metallic) * Fd * dr::abs(cos_theta_o);
+                }
+            }
+        }
+        return depolarizer<Spectrum>(value) & active;
+    }
+
     Float pdf(const BSDFContext &, const SurfaceInteraction3f &si,
               const Vector3f &wo, Mask active) const override {
         MI_MASKED_FUNCTION(ProfilerPhase::BSDFEvaluate, active);

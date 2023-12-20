@@ -366,6 +366,29 @@ public:
         return depolarizer<Spectrum>(value) & active;
     }
 
+    Spectrum eval_diffuse(const BSDFContext& ctx, const SurfaceInteraction3f& si,
+        const Vector3f& wo, Mask active) const override {
+        UnpolarizedSpectrum value(0.f);
+
+        Float cos_theta_i = Frame3f::cos_theta(si.wi),
+              cos_theta_o = Frame3f::cos_theta(wo);
+
+        if (ctx.is_enabled(BSDFFlags::DiffuseReflection, 1)) {
+            Float t_i = lerp_gather(m_external_transmittance, cos_theta_i,
+                                    MI_ROUGH_TRANSMITTANCE_RES, active),
+                  t_o = lerp_gather(m_external_transmittance, cos_theta_o,
+                                    MI_ROUGH_TRANSMITTANCE_RES, active);
+
+            UnpolarizedSpectrum diff = m_diffuse_reflectance->eval(si, active);
+            diff /= 1.f - (m_nonlinear ? (diff * m_internal_reflectance)
+                                       : UnpolarizedSpectrum(m_internal_reflectance));
+
+            value += diff * (dr::InvPi<Float> * m_inv_eta_2 * cos_theta_o * t_i * t_o);
+        }
+
+        return depolarizer<Spectrum>(value) & active;
+    }
+
     Float lerp_gather(const DynamicBuffer<Float> &data, Float x, size_t size,
                       Mask active = true) const {
         using UInt32 = dr::uint32_array_t<Float>;
