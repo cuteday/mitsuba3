@@ -49,6 +49,11 @@ MI_VARIANT Spectrum BSDF<Float, Spectrum>::eval_diffuse(
     return eval(ctx, si, wo, active);
 }
 
+MI_VARIANT Float BSDF<Float, Spectrum>::eval_roughness(
+    const SurfaceInteraction3f & /* si */, Mask /* active */) const {
+    return 1.f;
+}
+
 template <typename Texture, typename Type>
 struct AttributeCallback : public TraversalCallback {
     using F1 = std::function<Type(Texture *)>;

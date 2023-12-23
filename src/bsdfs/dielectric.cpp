@@ -373,6 +373,11 @@ public:
         return 0.f;
     }
 
+    Float eval_roughness(const SurfaceInteraction3f & /*si*/,
+                         Mask /*active*/) const override {
+        return Float(0.0f);
+    }
+
     std::string to_string() const override {
         std::ostringstream oss;
         oss << "SmoothDielectric[" << std::endl;
