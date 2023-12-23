@@ -1,47 +1,47 @@
 [submodule "ext/zlib"]
     path = ext/zlib
-    url = https://github.com/mitsuba-renderer/zlib
+    url = git@github.com:mitsuba-renderer/zlib
 [submodule "ext/libpng"]
     path = ext/libpng
-    url = https://github.com/mitsuba-renderer/libpng.git
+    url = git@github.com:mitsuba-renderer/libpng.git
 [submodule "ext/libjpeg"]
     path = ext/libjpeg
-    url = https://github.com/mitsuba-renderer/libjpeg
+    url = git@github.com:mitsuba-renderer/libjpeg
 [submodule "ext/openexr"]
     path = ext/openexr
-    url = https://github.com/mitsuba-renderer/openexr
+    url = git@github.com:mitsuba-renderer/openexr
 [submodule "ext/tinyformat"]
     path = ext/tinyformat
-    url = https://github.com/mitsuba-renderer/tinyformat
+    url = git@github.com:mitsuba-renderer/tinyformat
 [submodule "ext/pugixml"]
     path = ext/pugixml
-    url = https://github.com/mitsuba-renderer/pugixml
+    url = git@github.com:mitsuba-renderer/pugixml
 [submodule "ext/asmjit"]
     path = ext/asmjit
-    url = https://github.com/mitsuba-renderer/asmjit
+    url = git@github.com:mitsuba-renderer/asmjit
 [submodule "ext/pybind11"]
     path = ext/pybind11
-    url = https://github.com/pybind/pybind11
+    url = git@github.com:pybind/pybind11
 [submodule "ext/nanogui"]
     path = ext/nanogui
-    url = https://github.com/mitsuba-renderer/nanogui
+    url = git@github.com:mitsuba-renderer/nanogui
 [submodule "resources/data"]
     path = resources/data
-    url = https://github.com/mitsuba-renderer/mitsuba-data
+    url = git@github.com:mitsuba-renderer/mitsuba-data
     shallow = true
 [submodule "ext/embree"]
     path = ext/embree
-    url = https://github.com/mitsuba-renderer/embree
+    url = git@github.com:mitsuba-renderer/embree
 [submodule "ext/ittnotify"]
 	path = ext/ittnotify
-	url = https://github.com/intel/IntelSEAPI
+	url = git@github.com:intel/IntelSEAPI
 [submodule "ext/fastfloat"]
 	path = ext/fastfloat
-	url = https://github.com/fastfloat/fast_float
+	url = git@github.com:fastfloat/fast_float
 [submodule "tutorials"]
 	path = tutorials
-	url = https://github.com/mitsuba-renderer/mitsuba-tutorials
+	url = git@github.com:mitsuba-renderer/mitsuba-tutorials
 	shallow = true
 [submodule "ext/drjit"]
 	path = ext/drjit
-	url = https://github.com/mitsuba-renderer/drjit
+	url = git@github.com:mitsuba-renderer/drjit
