@@ -117,6 +117,10 @@ MI_VARIANT std::string Film<Float, Spectrum>::to_string() const {
     return oss.str();
 }
 
+MI_VARIANT void Film<Float, Spectrum>::set_rfilter(const std::string &name) {
+    m_filter = PluginManager::instance()->create_object<ReconstructionFilter>(
+        Properties(name));
+}
 
 MI_IMPLEMENT_CLASS_VARIANT(Film, Object, "film")
 MI_INSTANTIATE_CLASS(Film)

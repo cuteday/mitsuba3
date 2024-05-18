@@ -90,6 +90,9 @@ MI_PY_EXPORT(Film) {
         .def_method(Film, write, "path"_a)
         .def_method(Film, sample_border)
         .def_method(Film, base_channels_count)
+        .def("set_rfilter", [](Film *film, const std::string &name) {
+            film->set_rfilter(name);
+        }, "name"_a)
         // Make sure to return a copy of those members as they might also be
         // exposed by-references via `mi.traverse`. In which case the return
         // policy of `mi.traverse` might overrule the ones of those bindings.

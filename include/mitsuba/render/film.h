@@ -175,6 +175,14 @@ public:
                          const ScalarVector2u &crop_size);
 
     /**
+     * \brief Set the rfilter of the film.
+     *
+     * \param name
+     *    The name of the reconstruction filter.
+     */
+    void set_rfilter(const std::string &name);
+
+    /**
      * \brief Set the size of the film.
      *
      * This method will reset the crop window to the full image.
